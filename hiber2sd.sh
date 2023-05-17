@@ -6,6 +6,7 @@
 # Версия 2.2 Переписывает конфигурацию для гибернации даже если она уже существует
 # Версия 2.3 Скрипт завершиться при ошибке в любой команде
 # Версия 2.4 Произведена структуризация скрипта комментариями
+# Версия 2.5 Исключена ненужная переконфигурация initramfs при удалении настроек гибернации
 # -------------------------------------------------------------------------------------------------------
 # Конец истории версий
 #
@@ -31,14 +32,15 @@ if [[ "$delhib" = [yYlLдД] ]]; then echo -e "\n";
   cp -v /etc/fstab /etc/fstab.backup
   if grep -q 'swapfile none swap defaults' /etc/fstab; then sed -i '/swapfile none swap defaults/d' /etc/fstab; fi
   cp -v /etc/mkinitcpio.conf /etc/mkinitcpio.conf.backup
+  mki=0
   if grep -q 'uresume' /etc/mkinitcpio.conf; 
-    then sed -i 's!\(^HOOKS.*udev\) \(uresume\) \(.*filesystems.*\)!\1 \3!' /etc/mkinitcpio.conf; 
+    then sed -i 's!\(^HOOKS.*udev\) \(uresume\) \(.*filesystems.*\)!\1 \3!' /etc/mkinitcpio.conf; mki=1 ;
     else echo -e "\n"; echo "/etc/mkinitcpio.conf уже не содержит хук uresume"; echo -e "\n";
   fi
   cp -v /etc/suspend.conf /etc/suspend.conf.backup
-  if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; fi
-  if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; fi
-  mkinitcpio -P
+  if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; mki=1 ; fi
+  if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; mki=1 ; fi
+  if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
 fi
 # -------------------------------------------------------------------------------------------------------
 # Конец процедуры удаления настроек гибернации
