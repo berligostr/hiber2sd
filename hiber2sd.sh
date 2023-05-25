@@ -65,10 +65,10 @@ if [[ "$hib" = [yYlLдД] ]];
       then
       # Проверка запускался ли скрипт ранее
       if [ -e /etc/mkif ]; 
+        then echo -e "\n"; echo "Настройки скриптом уже производились!"; echo -e "\n";
         # создание файла подкачки 
         # -------------------------------------------------------------------------------------------------------
-        then echo -e "\n"; echo "Настройки скриптом уже производились!"; echo -e "\n";
-        else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
+       else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
           ozu="$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 "K" }')"
           fallocate -l $ozu /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
           # Определяем поддержку TRIM
@@ -96,6 +96,7 @@ if [[ "$hib" = [yYlLдД] ]];
           df /swapfile | grep dev | awk '{ print "resume device = " $1 }' | tee -a /etc/suspend.conf
           swap-offset /swapfile | tee -a /etc/suspend.conf
           mkinitcpio -P ; 
+          echo "Файл создан скриптом hiber2sd и указывает на признак существования настроек скрипта" | tee -a /etc/mkif;
           echo "suspend on" | tee -a /etc/mkif;
       fi
       # -------------------------------------------------------------------------------------------------------
@@ -130,7 +131,7 @@ if [[ "$hib" = [yYlLдД] ]];
       # Пост комментарии для юзера
       # -------------------------------------------------------------------------------------------------------
       # Пакет uswsusp-git из AUR не установлен, обработка для гибернации не сделана
-      else echo -e "\n" ; echo "Для нормальной работы скрипта необходим пакет uswsusp-git из AUR! Установи его немедленно!"; echo -e "\n" ;
+      else echo -e "\n" ; echo "Для работы скрипта надо установить пакет uswsusp-git из AUR!"; echo -e "\n" ;
     fi
   else echo -e "\n" ; echo "Ну на нет и суда нет! Если ошибся, то запусти скрипт снова!" ; echo -e "\n" ;
   # -------------------------------------------------------------------------------------------------------
