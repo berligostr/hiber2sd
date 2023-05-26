@@ -46,7 +46,7 @@ if [[ "$delhib" = [yYlLдД] ]]; then echo -e "\n";
       if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; mki=1 ; fi
       if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
       rm -f /etc/mkif ;
-    else echo -e "\n"; echo "Настройки скриптом не производились!"; echo -e "\n";
+    else echo -e "\n"; echo "Настройки скриптом не производились! Ваши настройки удалите руками"; echo -e "\n";
   fi
 fi
 # -------------------------------------------------------------------------------------------------------
@@ -70,6 +70,7 @@ if [[ "$hib" = [yYlLдД] ]];
         # создание файла подкачки 
         # -------------------------------------------------------------------------------------------------------
        else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
+          echo -e "\n" ; echo -e "Создание и настройка файла подкачки /swapfile"; echo -e "\n"
           ozu="$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 "K" }')"
           fallocate -l $ozu /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
           # Определяем поддержку TRIM
@@ -86,6 +87,7 @@ if [[ "$hib" = [yYlLдД] ]];
           #
           # Настройка initramfs
           # -------------------------------------------------------------------------------------------------------
+          echo -e "\n" ; echo -e "Настройка initramfs"; echo -e "\n"
           cp -v /etc/mkinitcpio.conf /etc/mkinitcpio.conf.backup
           if grep -q 'uresume' /etc/mkinitcpio.conf; 
             then echo "/etc/mkinitcpio.conf уже содержит хук uresume"; 
@@ -97,7 +99,7 @@ if [[ "$hib" = [yYlLдД] ]];
           df /swapfile | grep dev | awk '{ print "resume device = " $1 }' | tee -a /etc/suspend.conf
           swap-offset /swapfile | tee -a /etc/suspend.conf
           mkinitcpio -P ; 
-          echo "Файл создан скриптом hiber2sd и указывает на признак существования настроек скрипта" | tee -a /etc/mkif;
+          echo "Файл /etc/mkif создан скриптом hiber2sd и указывает на признак существования настроек скрипта" | tee -a /etc/mkif;
           echo "suspend on" | tee -a /etc/mkif;
       fi
       # -------------------------------------------------------------------------------------------------------
@@ -105,6 +107,7 @@ if [[ "$hib" = [yYlLдД] ]];
       #
       # Настройка параметров гибернации пакета uswsusp-git
       # -------------------------------------------------------------------------------------------------------
+      echo -e "\n" ; echo -e "Настройка параметров гибернации пакета uswsusp-git"; echo -e "\n" 
       if [ -f /etc/systemd/system/systemd-hibernate.service.d/override.conf ]; 
         then rm -f /etc/systemd/system/systemd-hibernate.service.d/override.conf ; 
       fi
@@ -125,9 +128,12 @@ if [[ "$hib" = [yYlLдД] ]];
       # гибернация на диск
       # -------------------------------------------------------------------------------------------------------
       echo -e "\n" ; read -n 1 -p "Гибернизируемся? [y/N]: " hiber;
-      if [[ "$hiber" = [yYlLдД] ]]; then echo -e "\n" ; systemctl hibernate; fi
-      # -------------------------------------------------------------------------------------------------------
-      # гибернация на диск произведена
+      if [[ "$hiber" = [yYlLдД] ]]; 
+        then echo -e "\n" ; systemctl hibernate; 
+        # -------------------------------------------------------------------------------------------------------
+        # гибернация на диск произведена
+        else echo -e "\n" ; echo -e "Теперь можно использовать штатную гибернацию или повторно запустить этот скрипт"; echo -e "\n" 
+      fi
       #
       # Пост комментарии для юзера
       # -------------------------------------------------------------------------------------------------------
