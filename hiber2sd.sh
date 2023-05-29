@@ -45,9 +45,9 @@ if [[ "$delhib" = [yYlLдД] ]]; then echo -e "\n";
         cp -v /etc/suspend.conf /etc/suspend.conf.backup
         if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; mki=1 ; fi
         if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; mki=1 ; fi
-        if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
-        rm -f /etc/mkif ;
       fi
+      if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
+      rm -f /etc/mkif ;
     else echo -e "\n"; echo "Настройки скриптом не производились! Ваши настройки удалите руками"; echo -e "\n";
   fi
 fi
