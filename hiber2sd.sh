@@ -41,11 +41,13 @@ if [[ "$delhib" = [yYlLдД] ]]; then echo -e "\n";
         then sed -i 's!\(^HOOKS.*udev\) \(uresume\) \(.*filesystems.*\)!\1 \3!' /etc/mkinitcpio.conf; mki=1 ;
         else echo -e "\n"; echo "/etc/mkinitcpio.conf уже не содержит хук uresume"; echo -e "\n";
       fi
-      cp -v /etc/suspend.conf /etc/suspend.conf.backup
-      if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; mki=1 ; fi
-      if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; mki=1 ; fi
-      if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
-      rm -f /etc/mkif ;
+      if [ -e /etc/suspend.conf ]; then
+        cp -v /etc/suspend.conf /etc/suspend.conf.backup
+        if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; mki=1 ; fi
+        if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; mki=1 ; fi
+        if [[ $mki = 1 ]]; then mkinitcpio -P ; fi
+        rm -f /etc/mkif ;
+      fi
     else echo -e "\n"; echo "Настройки скриптом не производились! Ваши настройки удалите руками"; echo -e "\n";
   fi
 fi
@@ -69,7 +71,7 @@ if [[ "$hib" = [yYlLдД] ]];
         then echo -e "\n"; echo "Настройки скриптом уже производились!"; echo -e "\n";
         # создание файла подкачки 
         # -------------------------------------------------------------------------------------------------------
-       else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
+        else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
           echo -e "\n" ; echo -e "Создание и настройка файла подкачки /swapfile"; echo -e "\n"
           ozu="$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 "K" }')"
           fallocate -l $ozu /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
@@ -93,13 +95,17 @@ if [[ "$hib" = [yYlLдД] ]];
             then echo "/etc/mkinitcpio.conf уже содержит хук uresume"; 
             else sed -i 's!\(^HOOKS.*udev\) \(.*filesystems.*\)!\1 uresume \2!' /etc/mkinitcpio.conf;
           fi
-          cp -v /etc/suspend.conf /etc/suspend.conf.backup
-          if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; fi
-          if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; fi
-          df /swapfile | grep dev | awk '{ print "resume device = " $1 }' | tee -a /etc/suspend.conf
-          swap-offset /swapfile | tee -a /etc/suspend.conf
+          if [ -e /etc/suspend.conf ]; 
+            then cp -v /etc/suspend.conf /etc/suspend.conf.backup
+              if grep -q 'resume device' /etc/suspend.conf; then sed -i '/resume device/d' /etc/suspend.conf; fi
+              if grep -q 'resume offset' /etc/suspend.conf; then sed -i '/resume offset/d' /etc/suspend.conf; fi
+              df /swapfile | grep dev | awk '{ print "resume device = " $1 }' | tee -a /etc/suspend.conf
+              swap-offset /swapfile | tee -a /etc/suspend.conf
+            else df /swapfile | grep dev | awk '{ print "resume device = " $1 }' | tee /etc/suspend.conf
+              swap-offset /swapfile | tee -a /etc/suspend.conf
+          fi
           mkinitcpio -P ; 
-          echo "Файл /etc/mkif создан скриптом hiber2sd и указывает на признак существования настроек скрипта" | tee -a /etc/mkif;
+          echo "Файл /etc/mkif создан скриптом hiber2sd и указывает на признак существования настроек скрипта" | tee /etc/mkif;
           echo "suspend on" | tee -a /etc/mkif;
       fi
       # -------------------------------------------------------------------------------------------------------
@@ -111,7 +117,9 @@ if [[ "$hib" = [yYlLдД] ]];
       if [ -f /etc/systemd/system/systemd-hibernate.service.d/override.conf ]; 
         then rm -f /etc/systemd/system/systemd-hibernate.service.d/override.conf ; 
       fi
-      echo "[Service]" | tee -a /etc/systemd/system/systemd-hibernate.service.d/override.conf
+      mkdir -p /etc/systemd/system/systemd-hibernate.service.d 
+      # if [ ! -d "$DIR" ]; then mkdir $DIR ; fi
+      echo "[Service]" | tee /etc/systemd/system/systemd-hibernate.service.d/override.conf
       echo "ExecStart=" | tee -a /etc/systemd/system/systemd-hibernate.service.d/override.conf
       echo "ExecStartPre=-/usr/bin/run-parts -v -a pre /usr/lib/systemd/systemd-sleep" | tee -a /etc/systemd/system/systemd-hibernate.service.d/override.conf
       echo "ExecStart=/usr/bin/s2disk" | tee -a /etc/systemd/system/systemd-hibernate.service.d/override.conf
@@ -119,7 +127,8 @@ if [[ "$hib" = [yYlLдД] ]];
       echo " " | tee -a /etc/systemd/system/systemd-hibernate.service.d/override.conf
       # Настройка параметра гибернации системы на диск с полным отключением питания
       if [ -f /etc/systemd/sleep.conf.d/hibernatemode.conf ]; then rm -f /etc/systemd/sleep.conf.d/hibernatemode.conf ; fi
-      echo "[Sleep]" | tee -a /etc/systemd/sleep.conf.d/hibernatemode.conf
+      mkdir -p /etc/systemd/sleep.conf.d
+      echo "[Sleep]" | tee /etc/systemd/sleep.conf.d/hibernatemode.conf
       echo "HibernateMode=shutdown" | tee -a /etc/systemd/sleep.conf.d/hibernatemode.conf
       echo " " | tee -a /etc/systemd/sleep.conf.d/hibernatemode.conf
       # -------------------------------------------------------------------------------------------------------
