@@ -93,7 +93,7 @@ if [[ "$hib" = [yYlLдД] ]];
           cp -v /etc/mkinitcpio.conf /etc/mkinitcpio.conf.backup
           if grep -q 'uresume' /etc/mkinitcpio.conf; 
             then echo "/etc/mkinitcpio.conf уже содержит хук uresume"; 
-            else sed -i 's!\(^HOOKS.*udev\) \(.*filesystems.*\)!\1 uresume \2!' /etc/mkinitcpio.conf;
+            else sed -i 's!\(^HOOKS.*autodetect\) \(.*filesystems.*\)!\1 uresume \2!' /etc/mkinitcpio.conf;
           fi
           if [ -e /etc/suspend.conf ]; 
             then cp -v /etc/suspend.conf /etc/suspend.conf.backup
