@@ -1,5 +1,5 @@
 #!/bin/su root
-#
+# shellcheck shell=bash
 # История версий
 # -------------------------------------------------------------------------------------------------------
 # Версия 2.1 почищены комментарии, удалены отладочные заметки 
@@ -71,11 +71,13 @@ if [[ "$hib" = [yYlLдД] ]];
         then echo -e "\n"; echo "Настройки скриптом уже производились!"; echo -e "\n";
         # создание файла подкачки 
         # -------------------------------------------------------------------------------------------------------
-        else if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
+        else 
+          if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
           echo -e "\n" ; echo -e "Создание и настройка файла подкачки /swapfile"; echo -e "\n"
           ozu="$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 "K" }')"
           fallocate -l $ozu /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
           # Определяем поддержку TRIM
+          # shellcheck disable=SC2046
           ssd="$(lsblk -D | grep $(lsblk -r | grep '/$' | awk '{ print $1 }') | awk '{ print $4 }')"; 
           if [[ "$ssd" = 0B ]]; then swapon /swapfile; else swapon --discard /swapfile; fi
           cp -v /etc/fstab /etc/fstab.backup
