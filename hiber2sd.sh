@@ -28,7 +28,7 @@ echo "Если настройки гибернации удалены вручн
 #
 # Удаление некоторых ненужных настроек гибернации в случае, если она больше не нужна
 # -------------------------------------------------------------------------------------------------------
-echo -e "\n"; read -n 1 -p "Удалить настройки гибернации, сделанные этим скриптом? [y/N]: " delhib;
+echo -e "\n"; read -r -n 1 -p "Удалить настройки гибернации, сделанные этим скриптом? [y/N]: " delhib;
 if [[ "$delhib" = [yYlLдД] ]]; then echo -e "\n"; 
   if [ -e /etc/mkif ]; 
     then
@@ -56,7 +56,7 @@ fi
 #
 # Настройка гибернации в файл
 # -------------------------------------------------------------------------------------------------------
-echo -e "\n" ; read -n 1 -p "Попытаться гибернизировать? [y/N]: " hib ;
+echo -e "\n" ; read -r -n 1 -p "Попытаться гибернизировать? [y/N]: " hib ;
 if [[ "$hib" = [yYlLдД] ]]; 
   then echo -e "\n" ; 
     # Скрипт работает только на ext4
@@ -74,8 +74,9 @@ if [[ "$hib" = [yYlLдД] ]];
         else 
           if [ -e /swapfile ]; then swapoff /swapfile ; rm -f /swapfile ; fi
           echo -e "\n" ; echo -e "Создание и настройка файла подкачки /swapfile"; echo -e "\n"
-          ozu="$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 "K" }')"
-          fallocate -l $ozu /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
+          # shellcheck disable=SC2002
+          ozu="$(grep -Rnw "/proc/meminfo" -e "MemTotal" | awk '{ print $2 "K" }')"
+          fallocate -l "$ozu" /swapfile ; chmod 600 /swapfile ; mkswap /swapfile ; 
           # Определяем поддержку TRIM
           # shellcheck disable=SC2046
           ssd="$(lsblk -D | grep $(lsblk -r | grep '/$' | awk '{ print $1 }') | awk '{ print $4 }')"; 
@@ -138,7 +139,7 @@ if [[ "$hib" = [yYlLдД] ]];
       #
       # гибернация на диск
       # -------------------------------------------------------------------------------------------------------
-      echo -e "\n" ; read -n 1 -p "Гибернизируемся? [y/N]: " hiber;
+      echo -e "\n" ; read -r -n 1 -p "Гибернизируемся? [y/N]: " hiber;
       if [[ "$hiber" = [yYlLдД] ]]; 
         then echo -e "\n" ; systemctl hibernate; 
         # -------------------------------------------------------------------------------------------------------
